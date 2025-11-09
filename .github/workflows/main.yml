@@ -1,0 +1,44 @@
+name: Firebase CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - stage
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy Firebase Services
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: |
+          npm install -g firebase-tools
+          cd functions && npm ci
+
+      - name: Deploy Cloud Functions, Firestore, and Hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase deploy --only functions,firestore,hosting
+
+  rollback:
+    if: failure()
+    runs-on: ubuntu-latest
+    name: Rollback on Failure
+    steps:
+      - name: Rollback Firebase Hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          npm install -g firebase-tools
+          firebase hosting:rollback
