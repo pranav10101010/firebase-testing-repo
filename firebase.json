@@ -2,7 +2,7 @@
   "functions": [
     {
       "codebase": "default",
-      "source": "functions",
+      "source": ".",
       "ignore": [
         "venv",
         ".git",
